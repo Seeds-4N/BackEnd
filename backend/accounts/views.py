@@ -1,9 +1,20 @@
 import json
+import requests
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+# from django.contrib.auth import get_user_model
+from django.shortcuts import redirect  
+
 from .models import User
+
+from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+
+
 
 # Create your views here.
 
@@ -40,19 +51,19 @@ def register(request):
             res_data['message'] = '회원가입 완료'
             return JsonResponse({"message" : res_data},status = 200)
         
-
+@method_decorator(csrf_exempt, name= 'dispatch')
 def login(request):        
         if request.method == "POST":
             params = json.loads(request.body)
-            username = params.get('username')
+            useremail = params.get('useremail')
             password = params.get('password')
 
-            if not (username and password):
+            if not (useremail and password):
                 return JsonResponse({"message":"유저이름과 비밀번호를 입력해주세요."},status=200)
             
             else:
                 #기존 DB에 있는 유저 모델 가져옴
-                user = User.objects.get(username = username) 
+                user = User.objects.get(useremail = useremail) 
                 if check_password(password, user.password):
                     request.session['user'] = user.id
                     return JsonResponse({"message":'유저가 맞습니다.'},status=200)
@@ -106,3 +117,51 @@ def findid(request):
         useremail = params.get('useremail') 
         username = User.objects.get(useremail=useremail).username
         return JsonResponse({"message" : "유저아이디를 찾았습니다.", "username": username},status=200)
+    
+
+KAKAO_TOKEN_API = "https://kauth.kakao.com/oauth/token"
+KAKAO_USER_API = "https://kapi.kakao.com/v2/user/me"
+KAKAO_CALLBACK_URI ="http://localhost:8000/kakao/"
+
+@method_decorator(csrf_exempt, name= 'dispatch')
+class KakaoLoginView(APIView):
+    def get(self, request):
+        code = request.GET["code"]
+        if not code:
+            return JsonResponse({"message" : "허가받지 않은 코드입니다."},status = 401)
+        
+        # kakao에 acces token 발급 요청
+        data = {
+          "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
+          "grant_type": "authorization_code",
+          "client_id": settings.KAKAO_REST_API_KEY, # 카카오 디벨로퍼 페이지에서 받은 rest api key
+          "redirect_uri": "http://localhost:8000/kakao/",
+          "code": code,
+        }
+        try:
+            token = requests.post(KAKAO_TOKEN_API, data=data).json() # 받은 코드로 카카오에 access token 요청하기
+            access_token =  token.get('access_token') # 받은 access token
+            if access_token==access_token:
+                print(access_token)
+                # kakao에 user info 요청
+                headers = {"Authorization": f"Bearer ${access_token}"}
+                user_infomation = requests.get(KAKAO_USER_API, headers=headers).json() # 받은 access token 으로 user 정보 요청
+                data = {'access_token': access_token, 'code': code}
+                kakao_account = user_infomation.get('kakao_account')
+                email = kakao_account.get('email') 
+                print(email)
+                try:
+                    user = User.objects.get(useremail=email)
+                    if user:
+                            request.session['user'] = user.id
+                            return Response({"message":"가입된 회원입니다."},status=200)
+                except:
+                     
+                    return Response({"message": "가입되지 않은 회원입니다."}, status=200) 
+
+        except:
+            return Response({"message": "검증되지 않은 토큰입니다."} , status=400) 
+            
+            
+
+        

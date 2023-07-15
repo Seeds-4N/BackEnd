@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+
 from pathlib import Path
 # import os
 
@@ -41,7 +42,20 @@ INSTALLED_APPS = [
     #여기서부터 추가
     'accounts',
     'corsheaders',# CORS 추가
-    'rest_framework'
+
+    # DRF
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework.authtoken',
+
+    # # rest_auth
+    # 'rest_auth',
+
+    # # registration
+    # 'django.contrib.sites',
+
+    # # AUTH
+    # 'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -133,28 +147,70 @@ CORS_ORIGIN_WHITELIST = (
      'http://localhost:3000',)
 CORS_ALLOW_CREDENTIALS = True
 
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+# AUTH_USER_MODEL = 'accounts.User'
+
+# REST_USE_JWT = True
+
+# ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+# ACCOUNT_EMAIL_REQUIRED = True
+# ACCOUNT_UNIQUE_EMAIL = True
+# ACCOUNT_USERNAME_REQUIRED = False
+# ACCOUNT_AUTHENTICATION_METHOD = 'email'
+# ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+# # jwt 토큰은 simplejwt의 JWTAuthentication으로 인증한다.
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     ),
+#      'DEFAULT_PERMISSION_CLASSES': (
+#        'rest_framework.permissions.AllowAny', # 누구나 접근
+#     ),
+# }
 
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-#EMAIL 전송
-#메일을 호스트하는 서버
-EMAIL_HOST = 'smtp.gmail.com'
+# SIMPLE_JWT = {
+#     'ACCESS_TOKEN_LIFETIME': timedelta(hours=2), 
+#     'REFRESH_TOKEN_LIFETIME': timedelta(days=14), 
+#     'ROTATE_REFRESH_TOKENS': True, 
+#     'BLACKLIST_AFTER_ROTATION': False, 
+#     'UPDATE_LAST_LOGIN': False,
 
-# GMAIL과의 통신하는 포트
-EMAIL_PORT = '587'
+#     'ALGORITHM': 'HS256',
+#     'SIGNING_KEY': SECRET_KEY,
+#     # 'VERIFYING_KEY': None,
+#     # 'AUDIENCE': None,
+#     # 'ISSUER': None,
+#     # 'JWK_URL': None,
+#     # 'LEEWAY': 0,
 
-#발신할 이메일
-#EMAIL_HOST_USER = '구글아이디@gmail.com'
-EMAIL_HOST_USER = '(#본인 아이디)@gmail.com'
+#     'AUTH_HEADER_TYPES': ('JWT',),
+#     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+#     'USER_ID_FIELD': 'id',
+#     'USER_ID_CLAIM': 'user_id',
+#     'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
 
-#발신할 메일의 비밀번호
-#EMAIL_HOST_PASSWORD = '구글비밀번호'
-EMAIL_HOST_PASSWORD = '구글비밀번호'
+#     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+#     'TOKEN_TYPE_CLAIM': 'token_type',
+#     'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
 
-#TLS 보안 방법
-EMAIL_USE_TLS = True
+#     'JTI_CLAIM': 'jti',
 
-#사이트와 관련한 자동응답을 받을 이메일 주소 
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+#     # 'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+#     # 'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+#     # 'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+# }
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
+
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+KAKAO_REST_API_KEY = "c684aed1126dd79ff99c6f8e0964d4fa"
+KAKAO_REDIRECT_URI ="http://localhost:8000/callback/"
