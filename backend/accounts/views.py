@@ -12,7 +12,7 @@ from .models import User
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
+
 
 
 
@@ -141,26 +141,42 @@ class KakaoLoginView(APIView):
         try:
             token = requests.post(KAKAO_TOKEN_API, data=data).json() # 받은 코드로 카카오에 access token 요청하기
             access_token =  token.get('access_token') # 받은 access token
-            if access_token==access_token:
-                print(access_token)
-                # kakao에 user info 요청
-                headers = {"Authorization": f"Bearer ${access_token}"}
-                user_infomation = requests.get(KAKAO_USER_API, headers=headers).json() # 받은 access token 으로 user 정보 요청
-                data = {'access_token': access_token, 'code': code}
-                kakao_account = user_infomation.get('kakao_account')
-                email = kakao_account.get('email') 
-                print(email)
-                try:
-                    user = User.objects.get(useremail=email)
-                    if user:
-                            request.session['user'] = user.id
-                            return Response({"message":"가입된 회원입니다."},status=200)
-                except:
-                     
-                    return Response({"message": "가입되지 않은 회원입니다."}, status=200) 
+            print(access_token)
+            # kakao에 user info 요청
+            headers = {"Authorization": f"Bearer ${access_token}"}
+            user_infomation = requests.get(KAKAO_USER_API, headers=headers).json() # 받은 access token 으로 user 정보 요청
+            data = {'access_token': access_token, 'code': code}
+            kakao_account = user_infomation.get('kakao_account')
+            email = kakao_account.get('email') 
+            print(kakao_account)
+            print(email)
+            try:
+                kakao_users = User.objects.filter(useremail=email)
+                kakao_name= kakao_account['profile']['nickname']
+                if kakao_users.exists():
+                    #기존회원과 동일한 이메일일 경우 
+                    user = kakao_users.first()
+                    kakao_name = kakao_account['profile']['nickname']
+                    request.session['user'] = user.id
+                    return Response({"message":"가입된 회원입니다."},status=200)
+                else:
+                    #간편회원가입
+                    user = User.objects.create(
+                        username = kakao_name,
+                        useremail = email 
+                    )
+                    print(user)
+                    user.save()
+                    request.session['kakao_user'] = user.id
+                    return Response({"message":"간편회원가입이 완료되었습니다."},status=200)
+            
+            except User.DoesNotExist:
+                #일반회원가입
+                return Response ({"message" : "일반 회원가입"})
 
-        except:
-            return Response({"message": "검증되지 않은 토큰입니다."} , status=400) 
+        except Exception as e:
+            print(e)
+            return Response({"message": "카카오로그인 오류가 발생했습니다."} , status=400) 
             
             
 
