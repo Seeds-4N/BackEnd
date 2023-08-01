@@ -141,15 +141,12 @@ class KakaoLoginView(APIView):
         try:
             token = requests.post(KAKAO_TOKEN_API, data=data).json() # 받은 코드로 카카오에 access token 요청하기
             access_token =  token.get('access_token') # 받은 access token
-            print(access_token)
             # kakao에 user info 요청
             headers = {"Authorization": f"Bearer ${access_token}"}
             user_infomation = requests.get(KAKAO_USER_API, headers=headers).json() # 받은 access token 으로 user 정보 요청
             data = {'access_token': access_token, 'code': code}
             kakao_account = user_infomation.get('kakao_account')
             email = kakao_account.get('email') 
-            print(kakao_account)
-            print(email)
             try:
                 kakao_users = User.objects.filter(useremail=email)
                 kakao_name= kakao_account['profile']['nickname']
@@ -165,7 +162,6 @@ class KakaoLoginView(APIView):
                         username = kakao_name,
                         useremail = email 
                     )
-                    print(user)
                     user.save()
                     request.session['kakao_user'] = user.id
                     return Response({"message":"간편회원가입이 완료되었습니다."},status=200)
