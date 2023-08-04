@@ -175,11 +175,6 @@ class KakaoLoginView(APIView):
             return Response({"message": "카카오로그인 오류가 발생했습니다."} , status=400) 
         
 
-def hi(request):
-    if request.method == 'GET':
-        res_data = "hi"
-        return JsonResponse({"message" : res_data},status = 200)
-
             
             
 
