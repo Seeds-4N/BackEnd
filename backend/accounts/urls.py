@@ -10,5 +10,6 @@ urlpatterns = [
     path('changepassword/',views.changepassword),
     path('findid/',views.findid),
     path('kakao/' , views.KakaoLoginView.as_view()),
+    path('hi/',views.hi),
 
 ]
