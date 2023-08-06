@@ -16,6 +16,7 @@ from rest_framework.response import Response
 
 
 
+
 # Create your views here.
 
 @method_decorator(csrf_exempt, name= 'dispatch')
@@ -135,12 +136,13 @@ class KakaoLoginView(APIView):
           "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
           "grant_type": "authorization_code",
           "client_id": settings.KAKAO_REST_API_KEY, # 카카오 디벨로퍼 페이지에서 받은 rest api key
-          "redirect_uri": "http://localhost:8000/kakao/",
+          "redirect_uri": "http://localhost:8000/kakaologin/",
           "code": code,
         }
         try:
             token = requests.post(KAKAO_TOKEN_API, data=data).json() # 받은 코드로 카카오에 access token 요청하기
             access_token =  token.get('access_token') # 받은 access token
+            request.session['kakao_access_token'] = access_token
             # kakao에 user info 요청
             headers = {"Authorization": f"Bearer ${access_token}"}
             user_infomation = requests.get(KAKAO_USER_API, headers=headers).json() # 받은 access token 으로 user 정보 요청
@@ -173,9 +175,123 @@ class KakaoLoginView(APIView):
         except Exception as e:
             print(e)
             return Response({"message": "카카오로그인 오류가 발생했습니다."} , status=400) 
+
+KAKAO_LOGOUT_API = "https://kapi.kakao.com/v1/user/logout"
+
+class KakaoLogoutView(APIView):
+    def post(self, request):
+        access_token = request.session.get('kakao_access_token')
+        print(access_token)
+
+        if not access_token:
+            return Response({"message": "토큰이 제공되지 않았습니다."}, status=400)
+        
+        # 카카오 API를 호출하여 해당 액세스 토큰으로 로그아웃 처리를 수행
+        logout_data = {
+            "Authorization": f"Bearer {access_token}"
+        }
+
+        try:
+            # 카카오 로그아웃 요청 보내기
+            logout_response = requests.post(KAKAO_LOGOUT_API, headers=logout_data)
+            
+            # 로그아웃에 성공하면 세션에서 사용자 정보를 삭제합니다.
+            if logout_response.status_code == 200:
+                if 'user' in request.session:
+                    del request.session['user']
+                if 'kakao_user' in request.session:
+                    del request.session['kakao_user']
+                return Response({"message": "로그아웃되었습니다."}, status=200)
+            else:
+                return Response({"message": "카카오로그아웃 오류가 발생했습니다."}, status=400)
+        except requests.exceptions.RequestException as e:
+            print(e)
+            return Response({"message": "카카오로그아웃 오류가 발생했습니다."}, status=400)
         
 
-            
-            
+class NaverLoginView(APIView):
+    def get(self,request):
+        code = request.GET["code"]
+        if not code:
+            return JsonResponse({"message" : "허가받지 않은 코드입니다."},status = 401)
+        
+        try:
+            token_url = 'https://nid.naver.com/oauth2.0/token'
+            data = {
+                'grant_type': 'authorization_code',
+                'client_id': settings.NAVER_CLIENT_ID,
+                'client_secret': settings.NAVER_CLIENT_SECRET,
+                'redirect_uri': settings.NAVER_REDIRECT_URI,
+                'code': code,
+            }
+            response = requests.post(token_url, data=data)
+            token_json = response.json()
 
+            # 액세스 토큰으로 사용자 정보 요청
+            access_token = token_json.get('access_token')
+            request.session['Naver_access_token'] = access_token
+            me_url = 'https://openapi.naver.com/v1/nid/me'
+            headers = {'Authorization': f'Bearer {access_token}'}
+            me_response = requests.get(me_url, headers=headers)
+            me_info = me_response.json()
+            Naveremail = me_info['response']['email']
+
+            try:
+                Naver_users = User.objects.filter(useremail=Naveremail)
+                Naver_name= me_info['response']['name']
+                if Naver_users.exists():
+                    #기존회원과 동일한 이메일일 경우 
+                    user = Naver_users.first()
+                    Naver_name = me_info['response']['name']
+                    request.session['user'] = user.id
+                    return Response({"message":"가입된 회원입니다."},status=200)
+                else:
+                    #간편회원가입
+                    user = User.objects.create(
+                        username = Naver_name,
+                        useremail = Naveremail 
+                    )
+                    user.save()
+                    request.session['Naver_user'] = user.id
+                    return Response({"message":"간편회원가입이 완료되었습니다."},status=200)
+            
+            except User.DoesNotExist:
+                return Response ({"message" : "일반 회원가입"})
+
+        except Exception as e:
+            return Response({"message": "네이버 로그인 오류가 발생했습니다."}, status=400)
+        
+
+Naverlogout_API = 'https://nid.naver.com/oauth2.0/token'
+
+class NaverLogoutView(APIView):
+    def post(self, request):
+        access_token = request.session.get('Naver_access_token')
+        if not access_token:
+            return Response({"message": "토큰이 제공되지 않았습니다."}, status=400)
+        
+        # 네이버 API를 호출하여 해당 액세스 토큰으로 로그아웃 처리를 수행
+        data = {
+        'grant_type': 'delete',
+        'client_id': settings.NAVER_CLIENT_ID,
+        'client_secret': settings.NAVER_CLIENT_SECRET,
+        'access_token': access_token,
+        }
+
+        try:
+            # 네이버 로그아웃 요청 보내기
+            response = requests.post(Naverlogout_API, data=data)
+            
+            # 로그아웃에 성공하면 세션에서 사용자 정보를 삭제합니다.
+            if response.status_code == 200:
+                if 'user' in request.session:
+                    del request.session['user']
+                if 'Naver_user' in request.session:
+                    del request.session['Naver_user']
+                return Response({"message": "로그아웃되었습니다."}, status=200)
+            else:
+                return Response({"message": "네이버 로그아웃 오류가 발생했습니다."}, status=400)
+            
+        except requests.exceptions.RequestException as e:
+            return Response({"message": "네이버 로그아웃 오류가 발생했습니다."}, status=400)
         

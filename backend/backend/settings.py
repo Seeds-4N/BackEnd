@@ -40,7 +40,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['43.200.8.152',
                  ".ap-northeast-2.compute.amazonaws.com",
-                 "127.0.0.1"
+                 "127.0.0.1",
+                  'localhost'
                  ]
 
 
@@ -168,3 +169,7 @@ SIMPLE_JWT = {
 
 KAKAO_REST_API_KEY = get_secret("KAKAO_REST_API_KEY")
 KAKAO_REDIRECT_URI = get_secret("KAKAO_REDIRECT_URI")
+
+NAVER_CLIENT_ID = "D0F08xuNTZ1fLXCzYW9N"
+NAVER_CLIENT_SECRET = "xtdMJITdR3"
+NAVER_REDIRECT_URI = "http://localhost:8000/naverlogin/"
