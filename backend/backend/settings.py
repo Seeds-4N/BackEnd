@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     #여기서부터 추가
     'accounts',
     'corsheaders',# CORS 추가
+    'posts',
 
     # DRF
     'rest_framework',
@@ -173,3 +174,9 @@ KAKAO_REDIRECT_URI = get_secret("KAKAO_REDIRECT_URI")
 NAVER_CLIENT_ID = "D0F08xuNTZ1fLXCzYW9N"
 NAVER_CLIENT_SECRET = "xtdMJITdR3"
 NAVER_REDIRECT_URI = "http://localhost:8000/naverlogin/"
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+LOGIN_URL = '/' 
+

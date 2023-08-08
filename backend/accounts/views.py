@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 # from django.contrib.auth import get_user_model
 from django.shortcuts import redirect  
+from django.contrib.auth import authenticate, login
 
 from .models import User
 
@@ -48,29 +49,32 @@ def register(request):
             #session 생성
             user = User.objects.get(useremail=useremail)
             request.session['user'] = user.id
+            print(request.session['user'])
             res_data['data'] = '1'#회원가입완료 
             res_data['message'] = '회원가입 완료'
             return JsonResponse({"message" : res_data},status = 200)
         
 @method_decorator(csrf_exempt, name= 'dispatch')
 def login(request):        
-        if request.method == "POST":
-            params = json.loads(request.body)
-            useremail = params.get('useremail')
-            password = params.get('password')
+    if request.method == "POST":
+        params = json.loads(request.body)
+        useremail = params.get('useremail')
+        password = params.get('password')
 
-            if not (useremail and password):
-                return JsonResponse({"message":"유저이름과 비밀번호를 입력해주세요."},status=200)
-            
-            else:
-                #기존 DB에 있는 유저 모델 가져옴
-                user = User.objects.get(useremail = useremail) 
+        if not (useremail and password):
+            return JsonResponse({"message": "유저이름과 비밀번호를 입력해주세요."}, status=200)
+        else:
+            try:
+                # 기존 DB에 있는 유저 모델 가져옴
+                user = User.objects.get(useremail=useremail)
                 if check_password(password, user.password):
-                    request.session['user'] = user.id
-                    return JsonResponse({"message":'유저가 맞습니다.'},status=200)
-                
+                    request.session['user_id'] = user.id  # 변경: 'user_id'로 세션에 저장
+                    request.session.save()
+                    return JsonResponse({"message": '유저가 맞습니다.'}, status=200)
                 else:
-                    return JsonResponse ({"message":'비밀번호가 틀립니다.'},status=400)
+                    return JsonResponse({"message": '비밀번호가 틀립니다.'}, status=400)
+            except User.DoesNotExist:
+                return JsonResponse({"message": '존재하지 않는 유저입니다.'}, status=400)
  
 def logout(request):
     if request.method == "GET":
@@ -181,8 +185,6 @@ KAKAO_LOGOUT_API = "https://kapi.kakao.com/v1/user/logout"
 class KakaoLogoutView(APIView):
     def post(self, request):
         access_token = request.session.get('kakao_access_token')
-        print(access_token)
-
         if not access_token:
             return Response({"message": "토큰이 제공되지 않았습니다."}, status=400)
         
