@@ -47,14 +47,33 @@ class PostListView(View):
         
         user_id = request.session.get('user')  # 세션에서 사용자 ID 가져오기
         if user_id:
-            request.session['post'] = post.id
-            return JsonResponse({'message': '저장되었습니다.'})
+            request.session['post'] = post.id #게시물 id
+            request.session['postauthor'] = post.author.id #user.id 와 같음
+            return JsonResponse({'message': '저장되었습니다.'},status = 200)
         else:
             return JsonResponse({"message": "로그인이 필요합니다."}, status=401)
+        
 
+    def put(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+        user_id = request.session.get('user_id') 
 
-class PostDetailView(View):
-    def get(self, request, pk):
-        post = get_object_or_404(Post, pk=pk)
-        serialized_post = {'id': post.id, 'title': post.title, 'content': post.content}
-        return JsonResponse(serialized_post)
+        if user_id == post.author.id:  # 현재 로그인한 사용자와 게시물 작성자를 비교
+            params = json.loads(request.body)
+            post.title = params.get("title", post.title)
+            post.content = params.get("content", post.content)
+            post.save()
+            return JsonResponse({'message': '수정되었습니다.'},status = 200)
+        else:
+            return JsonResponse({"message": "수정 권한이 없습니다."}, status=403)
+        
+
+    def delete(self , request , post_id):
+        post = get_object_or_404(Post, id=post_id)
+        user_id = request.session.get('user_id') 
+        if user_id == post.author.id:
+            post.delete()
+            return JsonResponse({'message': '삭제되었습니다.'},status = 200)
+        else:
+            return JsonResponse({"message": "삭제 할 수 없습니다."}, status=403)
+

@@ -69,6 +69,7 @@ def login(request):
                 user = User.objects.get(useremail=useremail)
                 if check_password(password, user.password):
                     request.session['user_id'] = user.id  # 변경: 'user_id'로 세션에 저장
+                    print(user.id)
                     request.session.save()
                     return JsonResponse({"message": '유저가 맞습니다.'}, status=200)
                 else:
