@@ -124,6 +124,24 @@ def findid(request):
         username = User.objects.get(useremail=useremail).username
         return JsonResponse({"message" : "유저아이디를 찾았습니다.", "username": username},status=200)
     
+@method_decorator(csrf_exempt, name= 'dispatch')
+def delete(request):
+    if request.method == "DELETE":
+        user_id = request.session.get("user_id")
+
+        if user_id:
+            try:
+                user = User.objects.get(pk=user_id)
+                user.delete()
+                return JsonResponse({"message": "회원탈퇴 성공"}, status=200)
+            
+            except User.DoesNotExist:
+                return JsonResponse({"message": "회원을 찾을 수 없습니다."}, status=404)
+            
+        return JsonResponse({"message": "로그인된 회원이 아닙니다."}, status=401)
+    else:
+        return JsonResponse({"message": "잘못된 요청 메서드입니다."}, status=400)
+
 
 KAKAO_TOKEN_API = "https://kauth.kakao.com/oauth/token"
 KAKAO_USER_API = "https://kapi.kakao.com/v2/user/me"
@@ -161,7 +179,7 @@ class KakaoLoginView(APIView):
                     #기존회원과 동일한 이메일일 경우 
                     user = kakao_users.first()
                     kakao_name = kakao_account['profile']['nickname']
-                    request.session['user'] = user.id
+                    request.session['kakao_user'] = user.id
                     return Response({"message":"가입된 회원입니다."},status=200)
                 else:
                     #간편회원가입
@@ -212,6 +230,31 @@ class KakaoLogoutView(APIView):
             return Response({"message": "카카오로그아웃 오류가 발생했습니다."}, status=400)
         
 
+KAKAO_UNLINK_API = "https://kapi.kakao.com/v1/user/unlink"
+        
+class KakaoUnLinkView(APIView):
+     def post(self, request):
+        access_token = request.session.get('kakao_access_token')
+        if access_token:
+            user_kakao_id = request.session.get('kakao_user')
+            url = "https://kapi.kakao.com/v1/user/unlink"
+            headers = {"Authorization": f"Bearer ${access_token}"}
+            data = {"target_id_type": "user_id", "target_id": user_kakao_id}
+            response = requests.post(url, headers=headers, data=data)
+            deleted_user_id = response.json().get("id")
+            if response.status_code == 200 and deleted_user_id:
+                request.session.clear()  # 세션 정보 삭제
+                """
+                db삭제 로직 구현
+                """
+                return Response({"message": "연결 끊기 성공"}, status=200)
+            else:
+                return Response({"message": "연결 끊기 실패"}, status=400)
+        else:
+            return Response({"message": "액세스 토큰이 없습니다."}, status=400)
+            
+        
+
 class NaverLoginView(APIView):
     def get(self,request):
         code = request.GET["code"]
@@ -246,7 +289,7 @@ class NaverLoginView(APIView):
                     #기존회원과 동일한 이메일일 경우 
                     user = Naver_users.first()
                     Naver_name = me_info['response']['name']
-                    request.session['user'] = user.id
+                    request.session['Naver_user'] = user.id
                     return Response({"message":"가입된 회원입니다."},status=200)
                 else:
                     #간편회원가입
@@ -297,4 +340,29 @@ class NaverLogoutView(APIView):
             
         except requests.exceptions.RequestException as e:
             return Response({"message": "네이버 로그아웃 오류가 발생했습니다."}, status=400)
+        
+
+class NaverUnLinkView(APIView):
+    def post(self,request):
+        access_token = request.session.get('Naver_access_token')
+        print(access_token)
+        if access_token:
+            user_naver_id = request.session.get('Naver_user')
+            url = "https://nid.naver.com/oauth2.0/token"
+            headers = {"Authorization": f"Bearer {access_token}"}
+            data = {
+                'grant_type': 'delete',
+                'client_id': settings.NAVER_CLIENT_ID,
+                'client_secret': settings.NAVER_CLIENT_SECRET,
+                "access_token": access_token
+            }
+            response = requests.post(url, headers=headers, data=data)
+            
+            if response.status_code == 200 and user_naver_id:
+                request.session.clear()  # 세션 정보 삭제
+                return Response({"message": "네이버 연결 끊기 성공"}, status=200)
+            else:
+                return Response({"message": "네이버 연결 끊기 실패"}, status=400)
+        else:
+            return Response({"message": "액세스 토큰이 없습니다."}, status=400)
         
