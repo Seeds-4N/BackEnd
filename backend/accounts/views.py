@@ -14,10 +14,6 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-
-
-
-
 # Create your views here.
 
 @method_decorator(csrf_exempt, name= 'dispatch')
@@ -219,9 +215,9 @@ class KakaoLogoutView(APIView):
             # 로그아웃에 성공하면 세션에서 사용자 정보를 삭제합니다.
             if logout_response.status_code == 200:
                 if 'user' in request.session:
-                    del request.session['user']
+                    del request.session['user_id']
                 if 'kakao_user' in request.session:
-                    del request.session['kakao_user']
+                    del request.session['kakao_user_id']
                 return Response({"message": "로그아웃되었습니다."}, status=200)
             else:
                 return Response({"message": "카카오로그아웃 오류가 발생했습니다."}, status=400)
@@ -331,9 +327,9 @@ class NaverLogoutView(APIView):
             # 로그아웃에 성공하면 세션에서 사용자 정보를 삭제합니다.
             if response.status_code == 200:
                 if 'user' in request.session:
-                    del request.session['user']
+                    del request.session['user_id']
                 if 'Naver_user' in request.session:
-                    del request.session['Naver_user']
+                    del request.session['Naver_user_id']
                 return Response({"message": "로그아웃되었습니다."}, status=200)
             else:
                 return Response({"message": "네이버 로그아웃 오류가 발생했습니다."}, status=400)
