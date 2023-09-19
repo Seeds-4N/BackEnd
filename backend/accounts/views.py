@@ -79,10 +79,10 @@ def login(request):
  
 def logout(request):
     if request.method == "GET":
-        if request.session.get('user') == None:
+        if request.session.get('user_id') == None:
             return JsonResponse({"message":"로그인이 안되었습니다."},status=400)
         
-        del(request.session['user'])
+        del(request.session['user_id'])
         return JsonResponse({"message":"로그아웃이 되었습니다."},status=200)
     
 def findpassword(request):
