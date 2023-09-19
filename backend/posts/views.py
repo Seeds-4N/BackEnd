@@ -44,7 +44,10 @@ class PostListView(View):
                 image = img ,
             )
             post.save()
-        return JsonResponse({"message": "저장되었습니다."}, status=200)
+            return JsonResponse({"message": "저장되었습니다."}, status=200)
+        else:
+            return JsonResponse({"message": "로그인이 필요합니다."}, status=401)
+
 
 
 @method_decorator(csrf_exempt, name= 'dispatch')
