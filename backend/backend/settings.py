@@ -38,7 +38,7 @@ SECRET_KEY = get_secret("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['43.200.8.152',
+ALLOWED_HOSTS = ['3.39.142.157',
                  ".ap-northeast-2.compute.amazonaws.com",
                  "127.0.0.1",
                   'localhost'
