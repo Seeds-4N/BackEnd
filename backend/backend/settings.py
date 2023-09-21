@@ -38,10 +38,11 @@ SECRET_KEY = get_secret("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['3.39.142.157',
+ALLOWED_HOSTS = [
                  ".ap-northeast-2.compute.amazonaws.com",
                  "127.0.0.1",
-                  'localhost'
+                  '3.39.172.157',
+                  "localhost",
                  ]
 
 
@@ -58,6 +59,9 @@ INSTALLED_APPS = [
     'accounts',
     'corsheaders',# CORS 추가
     'posts',
+    'folders',
+    'folders.locations',
+
 
     # DRF
     'rest_framework',
@@ -153,7 +157,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ORIGIN_WHITELIST = (
      'http://3.39.142.157:3000',
-     'http://localhost:3000',
+     'http://3.39.172.157:3000',
      'http://127.0.0.1:3000')
 CORS_ALLOW_CREDENTIALS = True
 SESSION_COOKIE_SAMESITE = None
@@ -177,7 +181,7 @@ KAKAO_REDIRECT_URI = get_secret("KAKAO_REDIRECT_URI")
 
 NAVER_CLIENT_ID = "D0F08xuNTZ1fLXCzYW9N"
 NAVER_CLIENT_SECRET = "xtdMJITdR3"
-NAVER_REDIRECT_URI = "http://localhost:8000/naverlogin/"
+NAVER_REDIRECT_URI = "http://3.39.172.157:8000/naverlogin/"
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

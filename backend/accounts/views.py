@@ -145,7 +145,7 @@ def delete(request):
 
 KAKAO_TOKEN_API = "https://kauth.kakao.com/oauth/token"
 KAKAO_USER_API = "https://kapi.kakao.com/v2/user/me"
-KAKAO_CALLBACK_URI ="http://localhost:8000/kakao/"
+KAKAO_CALLBACK_URI ="http://3.39.172.157:8000/kakao/"
 
 @method_decorator(csrf_exempt, name= 'dispatch')
 class KakaoLoginView(APIView):
@@ -159,7 +159,7 @@ class KakaoLoginView(APIView):
           "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
           "grant_type": "authorization_code",
           "client_id": settings.KAKAO_REST_API_KEY, # 카카오 디벨로퍼 페이지에서 받은 rest api key
-          "redirect_uri": "http://localhost:8000/kakaologin/",
+          "redirect_uri": "http://3.39.172.157:8000/kakaologin/",
           "code": code,
         }
         try:
