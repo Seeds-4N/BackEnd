@@ -60,9 +60,7 @@ INSTALLED_APPS = [
     'corsheaders',# CORS 추가
     'posts',
     'folders',
-    'folders.locations',
-
-
+    'place',
     # DRF
     'rest_framework',
     'rest_framework_simplejwt',
