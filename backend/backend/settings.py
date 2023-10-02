@@ -41,7 +41,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
                  ".ap-northeast-2.compute.amazonaws.com",
                  "127.0.0.1",
-                  '3.39.172.157',
+                  '3.39.142.157',
                   "localhost",
                  ]
 
@@ -155,7 +155,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ORIGIN_WHITELIST = (
      'http://3.39.142.157:3000',
-     'http://3.39.172.157:3000',
      'http://127.0.0.1:3000')
 CORS_ALLOW_CREDENTIALS = True
 SESSION_COOKIE_SAMESITE = None
@@ -179,7 +178,7 @@ KAKAO_REDIRECT_URI = get_secret("KAKAO_REDIRECT_URI")
 
 NAVER_CLIENT_ID = "D0F08xuNTZ1fLXCzYW9N"
 NAVER_CLIENT_SECRET = "xtdMJITdR3"
-NAVER_REDIRECT_URI = "http://3.39.172.157:8000/naverlogin/"
+NAVER_REDIRECT_URI = "http://3.39.142.157:8000/naverlogin/"
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

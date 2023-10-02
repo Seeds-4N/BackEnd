@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Location
+from .models import Places
 from django.http import JsonResponse
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
@@ -31,7 +31,7 @@ def save_location(request):
             return JsonResponse({'message': '잘못된 위치 정보입니다.'}, status=400)
 
         
-        location = Location(name=name, address=address, phone=phone, latitude=latitude, longitude=longitude)
+        location = Places(name=name, address=address, phone=phone, latitude=latitude, longitude=longitude)
         location.save()
         print(location.id) #저장 눌렀을때 장소 id확인
         return JsonResponse({'message': '성공적으로 저장되었습니다.'})
@@ -41,6 +41,6 @@ def save_location(request):
 
 def alllocation(request):
     if request.method == "GET":
-        all_locations = Location.objects.all()
+        all_locations = Places.objects.all()
         data = serializers.serialize('json', all_locations)
         return JsonResponse({'message': '서버에 저장된 모든 기록 가져오기', 'locations': json.loads(data)}, safe=False)
